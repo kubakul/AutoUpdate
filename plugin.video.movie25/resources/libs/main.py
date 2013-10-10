@@ -3,15 +3,20 @@ stime = time.time()
 import xbmc, xbmcgui, xbmcaddon, xbmcplugin
 loglevel = xbmc.LOGWARNING
 xbmc.log('Imported xbmc, xbmcgui, xbmcaddon, xbmcplugin Modules main.py: %fs' % (time.time() - stime), loglevel)
-import urllib as urllib,urllib2 as urllib2,re as re,string as string ,sys,os as os
-xbmc.log('Imported urllib,urllib2,re,string,sys,os Modules main.py: %fs' % (time.time() - stime), loglevel)
-xbmc.log('Imported resolvers Modules main.py: %fs' % (time.time() - stime), loglevel)
-from t0mm0.common.addon import Addon as Addon
-xbmc.log('Imported t0mm0.common.addon Modules main.py: %fs' % (time.time() - stime), loglevel)
 import threading
 xbmc.log('Imported threading Modules main.py: %fs' % (time.time() - stime), loglevel)
-import resolvers
-xbmc.log('Imported resolvers Modules main.py: %fs' % (time.time() - stime), loglevel)
+import urllib
+xbmc.log('Imported urllib Modules main.py: %fs' % (time.time() - stime), loglevel)
+import re
+xbmc.log('Imported re Modules main.py: %fs' % (time.time() - stime), loglevel)
+import string
+xbmc.log('Imported string Modules main.py: %fs' % (time.time() - stime), loglevel)
+import sys
+xbmc.log('Imported sys Modules main.py: %fs' % (time.time() - stime), loglevel)
+import os
+xbmc.log('Imported os Modules main.py: %fs' % (time.time() - stime), loglevel)
+from t0mm0.common.addon import Addon as Addon
+xbmc.log('Imported t0mm0.common.addon Modules main.py: %fs' % (time.time() - stime), loglevel)
 
 # xbmc.log('Imported queue Modules main.py: %fs' % (time.time() - stime), loglevel)
 #Mash Up - by Mash2k3 2012.
@@ -22,7 +27,7 @@ mashpath = selfAddon.getAddonInfo('path')
 addon = Addon(addon_id)
 Dir = xbmc.translatePath(os.path.join('special://home/addons/plugin.video.movie25', ''))
 repopath = xbmc.translatePath(os.path.join('special://home/addons/repository.mash2k3', ''))
-
+grab = None
 from universal import favorites
 fav = favorites.Favorites(addon_id, sys.argv)
 xbmc.log('Imported favorites Modules main.py: %fs' % (time.time() - stime), loglevel)
@@ -31,7 +36,7 @@ if selfAddon.getSetting('visitor_ga')=='':
     from random import randint
     selfAddon.setSetting('visitor_ga',str(randint(0, 0x7fffffff)))
 
-VERSION = "1.3.8"
+VERSION = "1.3.9"
 PATH = "MashUp-"            
 UATRACK="UA-38312513-1" 
 
@@ -50,12 +55,15 @@ except:
 
 sys.path.append( os.path.join( selfAddon.getAddonInfo('path'), 'resources', 'libs' ))
 ################################################################################ Common Calls ##########################################################################################################
-
-art = 'https://github.com/mash2k3/MashupArtwork/raw/master/art'
+if selfAddon.getSetting("artwork") == "false":
+    art = 'https://github.com/mash2k3/MashupArtwork/raw/master/art'
+else:
+    art = 'https://github.com/mash2k3/MashupArtwork/raw/master/art256'
 elogo = xbmc.translatePath('special://home/addons/plugin.video.movie25/resources/art/bigx.png')
 slogo = xbmc.translatePath('special://home/addons/plugin.video.movie25/resources/art/smallicon.png')
 
 def OPENURL(url, mobile = False, q = False, verbose = True):
+    import urllib2 
     UserAgent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
     try:
         print "MU-Openurl = " + url
@@ -108,6 +116,7 @@ def OPENURL2(url):
         return link
         
 def REDIRECT(url):
+        import urllib2
         req = urllib2.Request(url)
         req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
         response = urllib2.urlopen(req)
@@ -116,13 +125,12 @@ def REDIRECT(url):
 
 def Clearhistory(url):
         os.remove(url)
-        
+    
 def setGrab():
-    try:
-        grab
-    except:
+    global grab
+    if grab is None:
+        print "####################GRAB####################"
         from metahandler import metahandlers
-        global grab
         grab = metahandlers.MetaData(preparezip = False)
     
 def unescapes(text):
@@ -403,15 +411,18 @@ def GETMETAEpiT(mname,thumb,desc):
 def WatchedCallback():
         addon.log('Video completely watched.')
         videotype='movies'
+        setGrab()
         grab.change_watched(videotype, name, iconimage, season='', episode='', year='', watched=7)
         xbmc.executebuiltin("XBMC.Container.Refresh")
 
 def WatchedCallbackwithParams(video_type, title, imdb_id, season, episode, year):
     print "worked"
+    setGrab()
     grab.change_watched(video_type, title, imdb_id, season=season, episode=episode, year=year, watched=7)
     xbmc.executebuiltin("XBMC.Container.Refresh")
 
 def ChangeWatched(imdb_id, videoType, name, season, episode, year='', watched='', refresh=False):
+        setGrab()
         grab.change_watched(videoType, name, imdb_id, season=season, episode=episode, year=year, watched=watched)
         xbmc.executebuiltin("XBMC.Container.Refresh")
 
@@ -450,6 +461,7 @@ def refresh_movie(vidtitle,imdb, year=''):
         addon.show_ok_dialog(msg, 'Refresh Results')
 
 def episode_refresh(vidname, imdb, season_num, episode_num):
+    setGrab()
     grab.update_episode_meta(vidname, imdb, season_num, episode_num)
     xbmc.executebuiltin("XBMC.Container.Refresh")
 ################################################################################Trailers#######################################################################
@@ -457,6 +469,7 @@ def trailer(tmdbid):
     if tmdbid == '':
         xbmc.executebuiltin("XBMC.Notification(Sorry!,No Trailer Available For This Movie,3000)")
     else:
+        import urllib2
         xbmc.executebuiltin("XBMC.Notification(Please Wait!,Loading Trailer,1500)")
         user_agent = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:10.0a1) Gecko/20111029 Firefox/10.0a1'
         request= 'http://api.themoviedb.org/3/movie/' + tmdbid + '/trailers?api_key=d5da2b7895972fffa2774ff23f40a92f'
@@ -485,6 +498,7 @@ def TRAILERSEARCH(url, name, imdb):
     xbmc.executebuiltin("XBMC.Notification(Please Wait!,Getting Trailers Result,2000)")
     name = re.split(':\s\[',name)
     search      = name[0]
+    setGrab()
     infoLabels = grab._cache_lookup_by_name('movie', search.strip(), year='')
     print infoLabels
     res_name    = []
@@ -535,6 +549,7 @@ def SearchGoogle(search, site):
     return results
 ############################################################################### Resolvers ############################################################################################
 def resolve_url(url):
+    import resolvers
     return resolvers.resolve_url(url)
 ############################################################################### Download Code ###########################################################################################
 downloadPath = selfAddon.getSetting('download-folder')
@@ -588,6 +603,7 @@ def Download_Source(name,url):
         url=GetUrliW(url)
     
     name=removeColoredText(name)
+    name=re.sub(r'[^\w]', ' ', name)
     name=name.split(' [')[0]
     name=name.split('[')[0]
     name=name.split(' /')[0]
@@ -641,6 +657,7 @@ def GetNoobroom():
         return match[0]            
 def Noobroom(page_url):
     from t0mm0.common.net import Net as net
+    import urllib2
     user = selfAddon.getSetting('username')
     passw = selfAddon.getSetting('password')
     
@@ -903,6 +920,7 @@ def checkGA():
     
                     
 def send_request_to_google_analytics(utm_url):
+    
     ua='Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
     import urllib2
     try:
