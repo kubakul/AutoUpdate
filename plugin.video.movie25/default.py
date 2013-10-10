@@ -9,8 +9,6 @@ try:
     xbmc.log('Imported main Modules default.py: %fs' % (time.time() - stime), loglevel)
     import threading
     xbmc.log('Imported threading Modules default.py: %fs' % (time.time() - stime), loglevel)
-    from t0mm0.common.addon import Addon
-    xbmc.log('Imported t0mm0.common.addon Modules default.py: %fs' % (time.time() - stime), loglevel)
     import re, urllib, os
     xbmc.log('Imported re, liburl, os Modules default.py: %fs' % (time.time() - stime), loglevel)
 except Exception, e:
@@ -32,7 +30,6 @@ ENV = "Dev"  # "Prod" or "Dev"
 Mainurl ='http://www.movie25.so/movies/'
 addon_id = 'plugin.video.movie25'
 selfAddon = xbmcaddon.Addon(id=addon_id)
-addon = Addon(addon_id)
 art = main.art
 
 ################################################################################ Directories ##########################################################################################################
@@ -332,7 +329,7 @@ def Notify():
         notified=os.path.join(runonce,str(mashup))
         if not os.path.exists(notified):
             open(notified,'w').write('version="%s",'%mashup)
-            dir = addon.get_path()
+            dir = selfAddon.getAddonInfo('path')
             chlg = os.path.join(dir, 'changelog.txt')
             TextBoxes("[B][COLOR red]Mash Up Changelog[/B][/COLOR]",chlg)
             mashup=mashup-1
